@@ -13,12 +13,17 @@ env = environ.Env()
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-lz#6mv5czyb#32&=s4kqk-j7y)5d1z*umf6l+swdjcvf3(@mhg'
+SECRET_KEY = env("LMAPI_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("LMAPI_DEBUG") == 'True'
 
-ALLOWED_HOSTS = ['*']
+
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = env("LMAPI_ALLOWED_HOST").split(',')
+    
 
 
 # Application definition
@@ -184,15 +189,12 @@ if DEBUG:
     STATICFILES_DIRS = [
         os.path.join(BASE_DIR, 'static'),
     ]
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  
     
     RECAPTCHA_PUBLIC_KEY = str('6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
     RECAPTCHA_PRIVATE_KEY = str('6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe')
     RECAPTCHA_DOMAIN = 'www.recaptcha.net'
-    SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
-    
-    
+    SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']   
     
 else:
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -205,8 +207,10 @@ else:
     SECURE_SSL_HOST = True
     SESSION_COOKIE_HTTPONLY = True
     
-    RECAPTCHA_PUBLIC_KEY = "6LcaKrIaAAAAADsY8Gn_OKVAIe8vDCRYHEinJVQ5"
-    RECAPTCHA_PRIVATE_KEY = "6LcaKrIaAAAAALEZwimbIQLZTFbrVM1LZaQ-XbLm"
+    RECAPTCHA_PUBLIC_KEY = env("LMAPI_RECAPTCHA_PUBLIC_KEY")
+    RECAPTCHA_PRIVATE_KEY = env("LMAPI_RECAPTCHA_PRIVATE_KEY")
+ 
+    
     # RECAPTCHA_DOMAIN = 'www.recaptcha.net'
     SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
     
