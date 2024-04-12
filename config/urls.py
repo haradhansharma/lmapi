@@ -25,7 +25,7 @@ from django.conf import settings
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('backdoor/', admin.site.urls),
     path('api/v1/api-auth/', ObtainAuthTokenView.as_view()),
     path('api/v1/', include('license.urls')), 
     path('', include('common.urls')), 
