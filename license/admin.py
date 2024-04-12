@@ -12,3 +12,5 @@ class LicenseAdmin(admin.ModelAdmin):
         if not obj.license_key:
             obj.license_key = str(uuid.uuid4().hex)
         super().save_model(request, obj, form, change)
+        
+

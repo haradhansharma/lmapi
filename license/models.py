@@ -1,4 +1,6 @@
+import uuid
 from django.db import models
+from django.urls import reverse
 
 class License(models.Model):
     order_ref = models.CharField(max_length=100)
@@ -8,5 +10,8 @@ class License(models.Model):
     is_banned = models.BooleanField(default=False)
     activation_date = models.DateTimeField(null=True, blank=True)
     mac_address = models.CharField(max_length=100, null=True, blank=True)
+    
+    
+
 
     

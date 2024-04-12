@@ -1,0 +1,46 @@
+{% extends "includes/base.html" %}
+
+{% load static %}
+
+{% block content %}
+    
+    <section class="d-flex flex-row justify-content-center align-items-center py-4 py-xl-5 min-vh-100">
+        <div class="container">
+            <div class="text-white bg-primary border rounded border-0 border-primary d-flex flex-column justify-content-between flex-lg-row p-4 p-md-5">
+                <div class="pb-2 pb-lg-1">
+                    <h2 class="fw-bold mb-2">Avialable Downloads</h2>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Software</th>
+                                    <th>Link</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for download in downloads %}
+                                <tr>
+                                    <td>
+                                        <h3>
+                                            <a class="text-decoration-none" target="_blank" href="{{ download.get_download_url }}">{{download.name}}</a>
+                                        </h3>
+                                        <p>{{download.description|safe}}</p>
+                                    </td>
+                                    <td>
+                                        <a class="btn btn-light fs-5 py-2 px-4" role="button" target="_blank" href="{{ download.get_download_url }}">Download</a>
+                                    </td>
+                                 
+
+                                </tr>
+                                {% endfor %}
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

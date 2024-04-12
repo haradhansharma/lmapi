@@ -1,3 +1,5 @@
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from .models import License
 from .serializers import LicenseSerializer, LicenseActivationSerializer
@@ -104,3 +106,5 @@ class LicenseActivationView(APIView):
             return Response(LicenseSerializer(instance).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+

@@ -1,0 +1,23 @@
+{% extends "includes/base.html" %}
+
+{% load static %}
+
+{% block content %}
+    <section class="d-flex flex-row justify-content-center align-items-center py-4 py-xl-5 min-vh-100">
+        <div class="container">
+            {% for download in downloads %}
+
+            <div class="text-white bg-primary border rounded border-0 border-primary d-flex flex-column justify-content-between flex-lg-row p-4 p-md-5">
+                <div class="pb-2 pb-lg-1">
+                    <h2>{{ download.name }}</h2>
+                    {{ download.description|safe }}
+                </div>
+                <div class="my-2">
+                    <a class="btn btn-light fs-5 py-2 px-4" role="button" target="_blank" href="{{ download.get_download_url }}">Download</a>
+                </div>
+            </div>
+
+            {% endfor %}
+        </div>
+    </section>
+    {% endblock %}

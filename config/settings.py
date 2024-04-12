@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'accounts',
     'license',
     'drf_yasg',
+    'common',
+    'django_recaptcha', 
 ]
 
 REST_FRAMEWORK = {
@@ -137,6 +139,8 @@ DATABASES = {
 }
 
 
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -180,7 +184,16 @@ if DEBUG:
     STATICFILES_DIRS = [
         os.path.join(BASE_DIR, 'static'),
     ]
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    
+    
+    RECAPTCHA_PUBLIC_KEY = str('6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
+    RECAPTCHA_PRIVATE_KEY = str('6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe')
+    RECAPTCHA_DOMAIN = 'www.recaptcha.net'
+    SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
+    
+    
+    
 else:
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -192,6 +205,11 @@ else:
     SECURE_SSL_HOST = True
     SESSION_COOKIE_HTTPONLY = True
     
+    RECAPTCHA_PUBLIC_KEY = "6LcaKrIaAAAAADsY8Gn_OKVAIe8vDCRYHEinJVQ5"
+    RECAPTCHA_PRIVATE_KEY = "6LcaKrIaAAAAALEZwimbIQLZTFbrVM1LZaQ-XbLm"
+    # RECAPTCHA_DOMAIN = 'www.recaptcha.net'
+    SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
+    
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -202,8 +220,9 @@ EMAIL_HOST = env("LMAPI_EMAIL_HOST")
 EMAIL_PORT= env("LMAPI_EMAIL_PORT")
 EMAIL_HOST_USER = env("LMAPI_EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("LMAPI_EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS=False
-EMAIL_USE_SSL=True
+EMAIL_USE_TLS=True
+EMAIL_USE_SSL=False
+ADMIN_EMAIL = env("LMAPI_ADMIN_EMAIL")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
