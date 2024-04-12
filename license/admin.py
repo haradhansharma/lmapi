@@ -5,7 +5,7 @@ import uuid
 
 @admin.register(License)
 class LicenseAdmin(admin.ModelAdmin):
-    list_display = ['order_ref', 'email', 'expiry_date', 'is_valid_lifetime', 'is_banned', 'activation_date', 'license_key']
+    list_display = ['order_ref', 'expiry_date', 'is_valid_lifetime', 'is_banned', 'activation_date', 'license_key']
     readonly_fields = ['license_key']
 
     def save_model(self, request, obj, form, change):

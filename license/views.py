@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions, status
 from .models import License
-from .serializers import LicenseSerializer
+from .serializers import LicenseSerializer, LicenseActivationSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,6 +8,9 @@ from rest_framework.reverse import reverse
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework.throttling import UserRateThrottle
+from django.utils import timezone
 
 class APIHome(APIView):
     def get(self, request, format=None):
@@ -27,62 +30,77 @@ class APIHome(APIView):
         return Response(data, status=status.HTTP_200_OK)
     
 class ObtainAuthTokenView(ObtainAuthToken):    
-    @swagger_auto_schema(security=[{"Basic": []}])
+    @swagger_auto_schema(
+        security=[{"Basic": []}],
+        operation_description="Get Operation Token",
+        responses={
+            200: openapi.Response(
+                description="Authentication successful",
+                examples={
+                    'application/json': {
+                        "token": "YourAuthTokenHere"
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Bad request",
+                examples={
+                    'application/json': {
+                        "detail": "This account is banned. Please contact support."
+                    }
+                }
+            )
+        }
+    )
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        
+        if user.is_banned:
+            return Response({'detail': 'This account is banned. Please contact support.'}, status=400)
+        
+        token, created = Token.objects.get_or_create(user=user)
+        
+        return Response({'token': token.key})
+    
+    
 class LicenseDetailView(generics.RetrieveAPIView):
     queryset = License.objects.all()
     serializer_class = LicenseSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'license_key'
-    
-    
+        
     @swagger_auto_schema(
-        operation_description="Get a license Information",        
+        operation_summary="Retrieve License Details",
+        operation_description="Retrieve details of a license by its license key.",   
         security=[{"Token": []}],
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)  
     
-
-class LicenseActivationView(generics.UpdateAPIView):
-    queryset = License.objects.all()
-    serializer_class = LicenseSerializer
-    permission_classes = [permissions.IsAuthenticated] 
-    lookup_field = 'license_key'
-    http_method_names = ['put']
-    
+class LicenseActivationView(APIView):
     @swagger_auto_schema(
-        operation_description="Activate a license",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['encrypted_config'],
-            properties={
-                'encrypted_config': openapi.Schema(type=openapi.TYPE_STRING)
-            }
-        ),
+        operation_summary="Activate License",
+        operation_description="Update the MAC address associated with a license.",
+        request_body=LicenseActivationSerializer,
         responses={
             200: openapi.Response(
-                description="License activated successfully",
-                examples={
-                    'application/json': {
-                        "message": "License activated successfully"
-                    },
-                    'text/plain': """
-                        {
-                            "message": "License activated successfully"
-                        }
-                    """
-                }
+                description="Successful activation",
+                schema=LicenseSerializer
             ),
-            400: "Bad request",
-            401: "Unauthorized"
+            404: "License not found",
+            400: "Bad request"
         },
-        security=[{"Token": []}],
-
     )
-
-    def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+    def patch(self, request, license_key):
+        try:
+            instance = License.objects.get(license_key=license_key)
+        except License.DoesNotExist:
+            return Response({"error": "License not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = LicenseActivationSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save(activation_date=timezone.now())
+            return Response(LicenseSerializer(instance).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
