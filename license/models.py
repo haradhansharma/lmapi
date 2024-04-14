@@ -10,6 +10,7 @@ class License(models.Model):
     is_banned = models.BooleanField(default=False)
     activation_date = models.DateTimeField(null=True, blank=True)
     mac_address = models.CharField(max_length=100, null=True, blank=True)
+    ids = models.TextField(null=True, blank=True, help_text='Must be comma separated')
     
     
 
