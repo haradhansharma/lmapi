@@ -13,6 +13,13 @@ class License(models.Model):
     ids = models.TextField(null=True, blank=True, help_text='Must be comma separated')
     
     
+class Record(models.Model):
+    license = models.ForeignKey(License, on_delete=models.CASCADE, related_name='license_ids')
+    un = models.CharField(max_length=200)
+    pw = models.CharField(max_length=200)
+    la = models.DateTimeField(auto_now_add=True)
+    
+    
 
 
     

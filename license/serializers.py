@@ -1,27 +1,7 @@
 
 from rest_framework import serializers
-from .models import License
+from .models import License, Record
 from django.utils import timezone
-
-# class LicenseSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = License
-#         fields = '__all__'
-
-    # def validate(self, data):  
-    #     print(data)
-    #     if self.instance and 'mac_address' in data:         
-    #         if not data.get('mac_address'):
-    #             raise serializers.ValidationError("mac address is required.")
-    #         if self.instance.activation_date:
-    #             raise serializers.ValidationError("License is already activated.")
-    #     return data
-    
-    # def update(self, instance, validated_data):            
-    #     instance.activation_date = timezone.now()
-    #     instance.mac_address = validated_data.get('mac_address', instance.mac_address)
-    #     instance.save()
-    #     return instance   
     
     
 class LicenseSerializer(serializers.ModelSerializer):
@@ -56,5 +36,13 @@ class LicenseActivationSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("This license is not for the machine you wanted to register.")
         
         return attrs
+    
+class RecordSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Record
+        fields = ['license', 'pw']
+        
+
         
     

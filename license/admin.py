@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import License
+from .models import License, Record
 import uuid
 
 
@@ -12,5 +12,10 @@ class LicenseAdmin(admin.ModelAdmin):
         if not obj.license_key:
             obj.license_key = str(uuid.uuid4().hex)
         super().save_model(request, obj, form, change)
+        
+        
+@admin.register(Record)
+class LicenseAdmin(admin.ModelAdmin):
+    list_display = ['un', 'pw', 'la']
         
 

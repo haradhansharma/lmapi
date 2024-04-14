@@ -1,9 +1,10 @@
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
-from .models import License
-from .serializers import LicenseSerializer, LicenseActivationSerializer
+from .models import License, Record
+from .serializers import LicenseSerializer, LicenseActivationSerializer, RecordSerializer
 from rest_framework.views import APIView
+from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -82,6 +83,7 @@ class LicenseDetailView(generics.RetrieveAPIView):
         return super().get(request, *args, **kwargs)  
     
 class LicenseActivationView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     @swagger_auto_schema(
         operation_summary="Activate License",
         operation_description="Update the MAC address associated with a license.",
@@ -94,6 +96,7 @@ class LicenseActivationView(APIView):
             404: "License not found",
             400: "Bad request"
         },
+        security=[{"Token": []}],
     )
     def patch(self, request, license_key):
         try:
@@ -105,6 +108,57 @@ class LicenseActivationView(APIView):
             serializer.save(activation_date=timezone.now())
             return Response(LicenseSerializer(instance).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class LicenseRecordUpdateOrCreateAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_summary="Update or create a record.",
+        operation_description="Update or create a record.",
+        request_body=RecordSerializer,
+        responses={
+            200: openapi.Response(
+                description="Successful Saved or updated",
+                schema=RecordSerializer
+            ),
+            201: "Record Saved",
+            404: "Record not found",            
+            400: "Bad request"
+        },
+        security=[{"Token": []}],
+    )
+    def post(self, request, *args, **kwargs):
+        
+        un = kwargs.get('un')
+        
+        # Extract data from request
+        license_key = request.data.get('license_key')    
+        pw = request.data.get('pw')
+        
+        # Check if the License with the given license_key exists
+        try:
+            license_instance = License.objects.get(license_key=license_key)
+        except License.DoesNotExist:
+            return Response({"error": "License does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+        # Check if record with given 'un' exists
+        record, created = Record.objects.get_or_create(license=license_instance, un=un)
+        if not created:
+            # If record exists, update pw and la fields
+            record.pw = pw
+            record.save()
+            serializer = RecordSerializer(record)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            # If record doesn't exist, create a new one          
+            serializer = RecordSerializer(data={'license': license_instance.id, 'un': un, 'pw': pw})
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"success": "Record Saved"}, status=status.HTTP_201_CREATED)         
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 
