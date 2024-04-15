@@ -16,6 +16,7 @@ class LicenseAdmin(admin.ModelAdmin):
         
 @admin.register(Record)
 class LicenseAdmin(admin.ModelAdmin):
-    list_display = ['un', 'pw', 'la']
+    list_display = ['un', 'la']
+    readonly_fields = ['un', 'pw', 'la']
         
 

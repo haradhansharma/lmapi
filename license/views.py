@@ -14,6 +14,9 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.throttling import UserRateThrottle
 from django.utils import timezone
+from django.db import transaction
+
+# from rest_framework.decorators import http_method_names
 
 class APIHome(APIView):
     def get(self, request, format=None):
@@ -113,52 +116,45 @@ class LicenseActivationView(APIView):
 
 class LicenseRecordUpdateOrCreateAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+
     
     @swagger_auto_schema(
         operation_summary="Update or create a record.",
         operation_description="Update or create a record.",
         request_body=RecordSerializer,
-        responses={
-            200: openapi.Response(
-                description="Successful Saved or updated",
-                schema=RecordSerializer
-            ),
-            201: "Record Saved",
+        responses={            
+            200: "Successfully Updated",
+            201: "Successfully Created",            
             404: "Record not found",            
             400: "Bad request"
         },
         security=[{"Token": []}],
     )
-    def post(self, request, *args, **kwargs):
-        
-        un = kwargs.get('un')
-        
-        # Extract data from request
-        license_key = request.data.get('license_key')    
+
+    
+    def post(self, request, *args, **kwargs):         
+        un = kwargs.get('un')        
+     
+        license_key = request.data.get('license_key')
         pw = request.data.get('pw')
-        
-        # Check if the License with the given license_key exists
+    
         try:
             license_instance = License.objects.get(license_key=license_key)
         except License.DoesNotExist:
             return Response({"error": "License does not exist"}, status=status.HTTP_404_NOT_FOUND)
-        
+        except Exception as e:
+            print(e)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Check if record with given 'un' exists
-        record, created = Record.objects.get_or_create(license=license_instance, un=un)
-        if not created:
-            # If record exists, update pw and la fields
-            record.pw = pw
-            record.save()
-            serializer = RecordSerializer(record)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            # If record doesn't exist, create a new one          
-            serializer = RecordSerializer(data={'license': license_instance.id, 'un': un, 'pw': pw})
-            if serializer.is_valid():
-                serializer.save()
-                return Response({"success": "Record Saved"}, status=status.HTTP_201_CREATED)         
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            record, created = Record.objects.update_or_create(
+                license=license_instance, un=un, defaults={'pw': pw}
+            )
+
+        if created:                  
+            return Response({"success": "Successfully Created"}, status=status.HTTP_201_CREATED)
+        else:          
+            return Response({"success": "Successfully Updated"}, status=status.HTTP_200_OK)
     
 
 
