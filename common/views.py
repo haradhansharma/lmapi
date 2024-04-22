@@ -1,11 +1,13 @@
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse_lazy
 from common.models import Software
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from .forms import ContactForm
 from django.conf import settings
+from django.views.generic import FormView
 
 def home(request):
     promoted_downloads = Software.objects.filter(promot_to_front=True)
@@ -26,6 +28,8 @@ def downloads(request):
 def download_software(request, file_id):
     file_obj = get_object_or_404(Software, pk=file_id)
     return FileResponse(open(file_obj.file.path, 'rb'))
+
+
 
 
 def contact_view(request):
